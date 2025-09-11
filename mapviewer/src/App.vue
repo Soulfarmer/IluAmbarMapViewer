@@ -1,11 +1,15 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import WorldMap from './components/WorldMap.vue';
+import "leaflet/dist/leaflet.css";
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <h2>Ilu Ambar - Quenta Yára</h2>
+  <WorldMap/>
 </template>
 
-<style scoped></style>
+<style scoped>
+h2{
+  margin: 0
+}
+</style>
