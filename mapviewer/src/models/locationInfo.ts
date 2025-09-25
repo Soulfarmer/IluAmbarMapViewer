@@ -1,5 +1,13 @@
-export interface LocationInfo {
+export interface LocationInfo extends LocationBase{
+  Title: string;
+}
+
+export interface LocationBase {
   Latitude: number;
   Longitude: number;
-  Title: string;
+}
+
+export interface IRoute{
+  Name:string;
+  Waypoints:LocationBase[];
 }

@@ -1,13 +1,19 @@
 import { defineStore } from 'pinia'
 import type { LocationInfo}  from './../models/locationInfo'
 
-
 export type IMarker ={
-    locations : LocationInfo[];
+    markers : LocationInfo[];
 }
 
 export const useMarkerStore = defineStore('markerStore',{
     state:():IMarker=>({
-        locations:[{Latitude:10, Longitude:10, Title:'test'}]
-    })
-})
+        markers:[{Latitude:0, Longitude:0, Title:'Spawn'}],
+    }),
+    getters:{},
+    actions:{
+        /// Fetch data from firestore
+        fetch(){
+
+        }
+    }
+});

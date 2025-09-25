@@ -1,15 +1,24 @@
 <script lang="ts">
 // https://github.com/jhkluiver/Vue3Leaflet/blob/main/vue3-quasar-leaflet/src/components/VueLeafletMap.vue
 import "leaflet/dist/leaflet.css";
-import { LControlLayers, LMap, LTileLayer,LFeatureGroup } from "@vue-leaflet/vue-leaflet";
+import { LControlLayers, LMap, LTileLayer,LFeatureGroup, LMarker, LTooltip, LPolyline } from "@vue-leaflet/vue-leaflet";
+import { type PointTuple } from "leaflet";
+import { type IRoute, type LocationInfo } from "@/models/locationInfo";
 import { ref } from 'vue'
+import { storeToRefs } from "pinia";
+import {useMarkerStore} from "@/stores/markers"
+import {useRoutesStore} from "@/stores/routeStore"
+
 
 export default{
   components:{
     LMap,
     LTileLayer,
     LControlLayers,
-    LFeatureGroup
+    LFeatureGroup,
+    LMarker,
+    LTooltip,
+    LPolyline
   },
   data(){
     return{
@@ -17,7 +26,9 @@ export default{
       controlLayers : ref<typeof LControlLayers>(),
       fg : ref<typeof LFeatureGroup | null>(null),
       defaultZoom : ref(0),
-      center : ref<L.PointExpression>([100, 100])
+      center : ref<L.PointExpression>([100, 100]),
+      locations : storeToRefs(useMarkerStore()),
+      routes: storeToRefs(useRoutesStore())
     }
   },
   mounted(){
@@ -25,12 +36,20 @@ export default{
   methods:{
     init(){
       this.mapRef = (this.$refs.mapRef as typeof LMap)?.leafletObject;
-      console.log(this.mapRef)
+      this.controlLayers = (this.$refs.controlLayers as typeof LControlLayers)?.leafletObject
+      this.controlLayers?.addOverlay((this.$refs.fgtp as typeof LFeatureGroup )?.leafletObject,"Translocators")
+      this.controlLayers?.addOverlay((this.$refs.fgpoi as typeof LFeatureGroup)?.leafletObject,"POIs")
       setTimeout(() => {
             console.log("ran invalidateSize()")
             this.mapRef?.invalidateSize();
           }, 100);
       },
+      getLatLon(item: LocationInfo): PointTuple{
+        return [item.Latitude, item.Longitude]
+      },
+      getRoute(route: IRoute):PointTuple[]{
+        return route.Waypoints.map(m=>[m.Latitude, m.Longitude])
+      }
   }
 }
 </script>
@@ -48,15 +67,19 @@ export default{
     @update:zoom="(e)=>{/*console.log(e)*/}"
     @ready="()=>init()"
     >
-      <l-control-layers ref="controlLayers"/>
-      <suspense>
+       <l-control-layers ref="controlLayers" :options="{collapsed:false}"/>
       <l-tile-layer
         url="/maps/iluambar/{z}/{x}/{y}.png"
         name="Overworld"
         :no-wrap="true"
       />
-      </suspense>
-      <l-feature-group ref="fg" name="Translocators">
+      <l-feature-group ref="fgtp" name="Translocators">
+        <l-polyline v-for="(r) in routes.routes" :lat-lngs="getRoute(r)" color="blue"  dashArray="10, 10" dashOffset="30" :key="r.Name"/>
+      </l-feature-group>
+      <l-feature-group ref="fgpoi" name="POIs">
+        <l-marker v-for="loc in  locations.markers" :lat-lng="getLatLon(loc)" :key="loc.Title">
+          <l-tooltip>{{ loc.Title }}</l-tooltip>
+        </l-marker>
       </l-feature-group>
     </l-map>
   </div>
