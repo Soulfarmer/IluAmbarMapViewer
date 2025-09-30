@@ -25,4 +25,4 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ILU_AMBAR_CE3ED }}
           channelId: live
           projectId: ilu-ambar-ce3ed
-          firebaseJson: ./mapviewer/firebase.json
+          entryPoint: ./mapviewer
