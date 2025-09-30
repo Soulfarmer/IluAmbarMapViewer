@@ -1,19 +1,43 @@
 import { defineStore } from 'pinia'
-import type { LocationInfo}  from './../models/locationInfo'
+import type { IMapConfig, IMarker}  from './../models/locationInfo'
+import { 
+    getFirestore,
+    collection, 
+    getDocs
+} from 'firebase/firestore'
+import { fireApp } from './firebaseConfigStore';
+import { MarkerConverter } from './converters/markerConverer';
 
-export type IMarker ={
-    markers : LocationInfo[];
+const db = getFirestore(fireApp)
+const COLLECTION_NAME = "markers"
+
+interface IMakerData {
+    Markers: IMarker[]
+    Config: IMapConfig
 }
 
 export const useMarkerStore = defineStore('markerStore',{
-    state:():IMarker=>({
-        markers:[{Latitude:0, Longitude:0, Title:'Spawn'}],
+    state:()=>({
+        markersData:{} as IMakerData
+        
     }),
     getters:{},
     actions:{
+        with(options: IMapConfig){
+            this.markersData.Config = options
+            return this
+        },
         /// Fetch data from firestore
-        fetch(){
+        async fetch(){
+            await getDocs(collection(db,COLLECTION_NAME).withConverter(new MarkerConverter(this.markersData.Config)))
+            .then((snapshot)=>{
+                  snapshot.docs.forEach(p=>{
+                    if(p.exists()){
 
+                    }
+                  })
+            })
+            
         }
     }
 });

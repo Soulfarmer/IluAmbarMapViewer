@@ -8,7 +8,7 @@ import { ref } from 'vue'
 import { storeToRefs } from "pinia";
 import {useMarkerStore} from "@/stores/markers"
 import {useRoutesStore} from "@/stores/routeStore"
-
+import {useMapConfigStore} from "@/stores/mapConfig"
 
 export default{
   components:{
@@ -26,12 +26,18 @@ export default{
       controlLayers : ref<typeof LControlLayers>(),
       fg : ref<typeof LFeatureGroup | null>(null),
       defaultZoom : ref(0),
-      center : ref<L.PointExpression>([100, 100]),
+      center : ref<L.PointExpression>([-74, -53]),
       locations : storeToRefs(useMarkerStore()),
-      routes: storeToRefs(useRoutesStore())
+      routes: storeToRefs(useRoutesStore()),
+      mapConfig:storeToRefs(useMapConfigStore())
     }
   },
+  beforeMount() {
+    useMapConfigStore().fetch()
+  },
   mounted(){
+    useRoutesStore().fetch()
+    useMarkerStore().with(this.mapConfig).fetch()
   },
   methods:{
     init(){
@@ -48,7 +54,7 @@ export default{
         return [item.Latitude, item.Longitude]
       },
       getRoute(route: IRoute):PointTuple[]{
-        return route.Waypoints.map(m=>[m.Latitude, m.Longitude])
+        return route.Coords.map(m=>[m.Latitude, m.Longitude])
       }
   }
 }
@@ -65,6 +71,7 @@ export default{
     :use-global-leaflet="true"
     :cursor="true"
     @update:zoom="(e)=>{/*console.log(e)*/}"
+    @click="(e:any)=>console.log(e.latlng)"
     @ready="()=>init()"
     >
        <l-control-layers ref="controlLayers" :options="{collapsed:false}"/>

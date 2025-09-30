@@ -1,6 +1,15 @@
-export interface LocationInfo extends LocationBase{
-  Title: string;
+export interface IMapConfig{
+  spawnControl:LocationBase
 }
+
+export interface IMarker{
+  Coords: LocationBase;
+  Title: string;
+  DateAdded:string;
+  Layer:string;
+  PlayerName:string;
+}
+
 
 export interface LocationBase {
   Latitude: number;
@@ -9,5 +18,9 @@ export interface LocationBase {
 
 export interface IRoute{
   Name:string;
-  Waypoints:LocationBase[];
+  Coords:LocationBase[];
+  DateAdded?:string;
+  PlayerName?:string;
+  Title?:string;
+  config:IMapConfig
 }
