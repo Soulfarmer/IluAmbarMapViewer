@@ -12,6 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm ci && npm run build-only
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "18.x"
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
