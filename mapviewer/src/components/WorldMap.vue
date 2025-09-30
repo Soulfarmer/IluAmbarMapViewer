@@ -93,7 +93,7 @@ export default{
 </template>
 <style scoped>
 .inmap{
-  width: 100vw;
+  width: 98vw;
   height: 95vh;
 }
 </style>
