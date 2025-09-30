@@ -1,5 +1,6 @@
-export interface IMapConfig{
-  spawnControl:LocationBase
+
+export class IMapConfig{
+  spawnControl!:LocationBase
 }
 
 export interface IMarker{

@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { LControlLayers, LMap, LTileLayer,LFeatureGroup, LMarker, LTooltip, LPolyline } from "@vue-leaflet/vue-leaflet";
 import { type PointTuple } from "leaflet";
-import { type IRoute, type LocationInfo } from "@/models/locationInfo";
+import { type IRoute, type LocationBase } from "@/models/locationInfo";
 import { ref } from 'vue'
 import { storeToRefs } from "pinia";
 import {useMarkerStore} from "@/stores/markers"
@@ -37,7 +37,7 @@ export default{
   },
   mounted(){
     useRoutesStore().fetch()
-    useMarkerStore().with(this.mapConfig).fetch()
+    useMarkerStore().fetch()
   },
   methods:{
     init(){
@@ -46,15 +46,14 @@ export default{
       this.controlLayers?.addOverlay((this.$refs.fgtp as typeof LFeatureGroup )?.leafletObject,"Translocators")
       this.controlLayers?.addOverlay((this.$refs.fgpoi as typeof LFeatureGroup)?.leafletObject,"POIs")
       setTimeout(() => {
-            console.log("ran invalidateSize()")
             this.mapRef?.invalidateSize();
           }, 100);
       },
-      getLatLon(item: LocationInfo): PointTuple{
-        return [item.Latitude, item.Longitude]
+      getLatLon(item: LocationBase): PointTuple{
+        return [item.Latitude+(-74.31), item.Longitude+(-53.56)]
       },
       getRoute(route: IRoute):PointTuple[]{
-        return route.Coords.map(m=>[m.Latitude, m.Longitude])
+        return route.Coords.map(m=>[m.Latitude+(-74.31), m.Longitude+(-53.56)])
       }
   }
 }
@@ -70,6 +69,7 @@ export default{
     style="z-index: 0;"
     :use-global-leaflet="true"
     :cursor="true"
+    crs="Base"
     @update:zoom="(e)=>{/*console.log(e)*/}"
     @click="(e:any)=>console.log(e.latlng)"
     @ready="()=>init()"
@@ -84,7 +84,7 @@ export default{
         <l-polyline v-for="(r) in routes.routes" :lat-lngs="getRoute(r)" color="blue"  dashArray="10, 10" dashOffset="30" :key="r.Name"/>
       </l-feature-group>
       <l-feature-group ref="fgpoi" name="POIs">
-        <l-marker v-for="loc in  locations.markers" :lat-lng="getLatLon(loc)" :key="loc.Title">
+        <l-marker v-for="loc in  locations.Markers" :lat-lng="getLatLon(loc.Coords)" :key="loc.Title">
           <l-tooltip>{{ loc.Title }}</l-tooltip>
         </l-marker>
       </l-feature-group>

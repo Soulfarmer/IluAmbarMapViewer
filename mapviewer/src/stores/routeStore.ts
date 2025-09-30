@@ -24,7 +24,6 @@ export const useRoutesStore = defineStore('routeStore',{
             .then((snapshot) =>
                 snapshot.docs.forEach((p) => {
                     if (p.exists()) 
-                        (console.log(p.data()))
                         this.routes.push(p.data() as IRoute)
                     })
             )
