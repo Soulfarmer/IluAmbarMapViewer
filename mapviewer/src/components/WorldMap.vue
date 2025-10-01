@@ -11,6 +11,11 @@ import {useRoutesStore} from "@/stores/routeStore"
 import {useMapConfigStore} from "@/stores/mapConfig"
 
 export default{
+  created() {
+    useMapConfigStore().fetch()
+    useRoutesStore().fetch()
+    useMarkerStore().fetch()
+  },
   components:{
     LMap,
     LTileLayer,
@@ -27,17 +32,15 @@ export default{
       fg : ref<typeof LFeatureGroup | null>(null),
       defaultZoom : ref(0),
       center : ref<L.PointExpression>([-74, -53]),
+      mapConfig: storeToRefs(useMapConfigStore()),
       locations : storeToRefs(useMarkerStore()),
       routes: storeToRefs(useRoutesStore()),
-      mapConfig:storeToRefs(useMapConfigStore())
     }
   },
   beforeMount() {
-    useMapConfigStore().fetch()
   },
   mounted(){
-    useRoutesStore().fetch()
-    useMarkerStore().fetch()
+  
   },
   methods:{
     init(){
@@ -50,10 +53,10 @@ export default{
           }, 100);
       },
       getLatLon(item: LocationBase): PointTuple{
-        return [item.Latitude+(-74.31), item.Longitude+(-53.56)]
+        return [item.Latitude+ this.mapConfig.spawnControl.Latitude, item.Longitude+this.mapConfig.spawnControl.Longitude]
       },
       getRoute(route: IRoute):PointTuple[]{
-        return route.Coords.map(m=>[m.Latitude+(-74.31), m.Longitude+(-53.56)])
+        return route.Coords.map(m=>[m.Latitude + this.mapConfig.spawnControl.Latitude, m.Longitude+this.mapConfig.spawnControl.Longitude ])
       }
   }
 }
@@ -64,7 +67,7 @@ export default{
     <l-map ref="mapRef" 
     v-model:zoom="defaultZoom" 
     :min-zoom="0" 
-    :max-zoom="5" 
+    :max-zoom="6" 
     :center="center"
     style="z-index: 0;"
     :use-global-leaflet="true"

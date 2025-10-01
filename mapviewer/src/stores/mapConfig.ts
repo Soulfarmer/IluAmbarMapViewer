@@ -14,7 +14,11 @@ export const useMapConfigStore = defineStore('mapConfigStore',{
     state:()=>({
        options:{} as IMapConfig
     }),
-    getters:{},
+    getters:{
+        spawnControl:(state):LocationBase=>{
+            return state.options.spawnControl
+        }
+    },
     actions:{
         /// Fetch data from firestore
         async fetch(){
@@ -22,11 +26,10 @@ export const useMapConfigStore = defineStore('mapConfigStore',{
             .then(
                 (snapshot)=>{
                     if (snapshot.exists()){
-                        console.log(snapshot.data())
                         const coords = snapshot.get("spawn-control").split(":")
                         this.options.spawnControl = {
-                            Latitude:coords[0],
-                            Longitude:coords[1]
+                            Latitude:parseFloat(coords[0]),
+                            Longitude:parseFloat(coords[1])
                         } as LocationBase
                     }
                 }

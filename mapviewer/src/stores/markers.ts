@@ -24,7 +24,6 @@ export const useMarkerStore = defineStore('markerStore',{
             .then((snapshot)=>{
                   snapshot.docs.forEach(p=>{
                     if(p.exists()){
-                        console.log(p.data())
                         this.Markers.push(p.data() as IMarker)
                     }
                   })
