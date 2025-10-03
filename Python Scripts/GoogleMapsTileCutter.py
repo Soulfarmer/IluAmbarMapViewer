@@ -10,7 +10,7 @@ def ensure_square(im):
     return new_im
 
 def save_tile(tile, z, x, y, output_dir, export_format, structure):
-    print(f'saving to folder {output_dir}')
+    # print(f'saving to folder {output_dir}')
     if structure == 'folder':
         path = os.path.join(output_dir, str(z), str(x))
         os.makedirs(path, exist_ok=True)

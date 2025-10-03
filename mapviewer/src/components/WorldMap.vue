@@ -37,11 +37,6 @@ export default{
       routes: storeToRefs(useRoutesStore()),
     }
   },
-  beforeMount() {
-  },
-  mounted(){
-  
-  },
   methods:{
     init(){
       this.mapRef = (this.$refs.mapRef as typeof LMap)?.leafletObject;
