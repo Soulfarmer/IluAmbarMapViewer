@@ -21,3 +21,6 @@ pnpm-debug.log*
 *.sln
 *.sw?
 *.ps1
+
+
+myfirebasemod-credentials.json
