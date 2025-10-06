@@ -68,7 +68,7 @@ public class RedsMapCommandsModSystem : ModSystem
         var configFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"VintagestoryData\ModConfig\RedsMapCommands\");
         try
         {
-            if (string.IsNullOrEmpty( Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS"))){
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS"))) {
                 // Path to your credentials file. The server admin must place this file here.
                 // Using "ModConfig" is a good practice.
                 string credentialsPath = Path.Combine(configFolder, "myfirebasemod-credentials.json");
@@ -82,11 +82,11 @@ public class RedsMapCommandsModSystem : ModSystem
                 // Set the environment variable programmatically for the current process.
                 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath);
             }
-            
+
             // Initialize FirestoreDb. The project ID is read from the credentials file.
-            if (firestoreDb==null) 
+            if (firestoreDb == null)
                 firestoreDb = FirestoreDb.Create("ilu-ambar-ce3ed"); // Pass your Firebase Project ID here if needed, e.g., FirestoreDb.Create("my-project-id")
-            
+
             Console.WriteLine("[MyFirebaseMod] Successfully connected to Firestore.");
         }
         catch (Exception e)

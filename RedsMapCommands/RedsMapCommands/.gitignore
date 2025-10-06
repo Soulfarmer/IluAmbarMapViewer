@@ -35,6 +35,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+[Ll]ib/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -490,6 +491,10 @@ fabric.properties
 # Ignore all local history of files
 .history
 .ionide
+
+## RedMapCommandsSpecific
+myfirebasemod-credentials.json
+
 
 ### VisualStudio ###
 
