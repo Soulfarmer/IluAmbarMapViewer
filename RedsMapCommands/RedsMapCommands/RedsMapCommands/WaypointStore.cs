@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace RedsMapCommands;
@@ -41,7 +43,11 @@ public static class WaypointStore
         }
     }
     
-    public static void WriteToMap(string collectionName,string layer,object markerData, string[] coords = null)
+    public static void WriteToMap(string PlayerName, 
+        string collectionName,
+        string layer,
+        object markerData,
+        string[] coords = null)
     {
         // Only initializes Firestore if the command runs.
         InitFirestore();
@@ -53,12 +59,13 @@ public static class WaypointStore
             try
             {
                 docRef = firestoreDb.Collection(collectionName).Document(layer);
-                
                 // SetAsync will create the document if it doesn't exist or overwrite it if it does.
                 await docRef.SetAsync(markerData, SetOptions.MergeAll);
+                
                 if(coords!=null)
                     await docRef.UpdateAsync("Coords", FieldValue.ArrayUnion(coords));
                 Console.WriteLine("[MyFirebaseMod] Wrote player data to Firestore.");
+                
             }
             catch (Exception e)
             {
@@ -67,7 +74,7 @@ public static class WaypointStore
         });
     }
 
-    public static void WriteWaypoint(string collectionName, string layer, string player, object markerData)
+    public static void WriteWaypoint(string collectionName, string layer, string player, Waypoint markerData)
     {
         InitFirestore();
         DocumentReference docRef = null;
@@ -75,18 +82,18 @@ public static class WaypointStore
         {
             Task.Run(async () =>
             {
-              
+                docRef = firestoreDb.Collection(collectionName).Document(layer);
+                var snapshot = await docRef.GetSnapshotAsync();
+                if(snapshot.Exists) 
+                    await docRef.UpdateAsync("waypoints",FieldValue.ArrayUnion(markerData));
+                else
+                    await docRef.SetAsync(new LayerGroup(markerData));
             });
         }
         catch (Exception e)
         {
             Console.WriteLine("[MyFirebaseMod] Error writing to Firestore: {0}", e.Message);
         }
-    }
-
-    private static void WriteDocRefFor(string player, string document, DocumentReference docRef)
-    {
-        
     }
 
     public static string UpdateMapControlCoords(string coords)

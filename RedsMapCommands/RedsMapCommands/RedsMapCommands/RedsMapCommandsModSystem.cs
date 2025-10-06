@@ -38,29 +38,29 @@ public class RedsMapCommandsModSystem : ModSystem
             .HandleWith(OnMapAddMarker)
             .EndSubCommand();
         
-        mapAddCmd.BeginSubCommand("markerat")
-            .WithDescription("Adds a marker to the map at a given position.")
-            .WithArgs(
-                new CommandArgumentParsers(api).Word("layer"),
-                new CommandArgumentParsers(api).Word("title"),
-                new CommandArgumentParsers(api).Word("coords")
-                )
-            .HandleWith(OnMapAddMarkerAt)
-            .EndSubCommand();
-        
-        mapAddCmd.BeginSubCommand("route")
-            .WithDescription("Adds a route to the map.")
-            .WithArgs(
-                new CommandArgumentParsers(api).Word("name"))
-            .WithExamples($"mapadd route my-route-name")
-            .HandleWith(OnMapAddRoute)
-            .EndSubCommand();
-
-        mapAddCmd.BeginSubCommand("update")
-            .WithDescription("Update the coordinates control value based on the spawn position on the web site.")
-            .HandleWith(OnUpdateCoord)
-            .WithExamples("mapadd update -43.102:-54.389")
-            .EndSubCommand();
+        // mapAddCmd.BeginSubCommand("markerat")
+        //     .WithDescription("Adds a marker to the map at a given position.")
+        //     .WithArgs(
+        //         new CommandArgumentParsers(api).Word("layer"),
+        //         new CommandArgumentParsers(api).Word("title"),
+        //         new CommandArgumentParsers(api).Word("coords")
+        //         )
+        //     .HandleWith(OnMapAddMarkerAt)
+        //     .EndSubCommand();
+        //
+        // mapAddCmd.BeginSubCommand("route")
+        //     .WithDescription("Adds a route to the map.")
+        //     .WithArgs(
+        //         new CommandArgumentParsers(api).Word("name"))
+        //     .WithExamples($"mapadd route my-route-name")
+        //     .HandleWith(OnMapAddRoute)
+        //     .EndSubCommand();
+        //
+        // mapAddCmd.BeginSubCommand("update")
+        //     .WithDescription("Update the coordinates control value based on the spawn position on the web site.")
+        //     .HandleWith(OnUpdateCoord)
+        //     .WithExamples("mapadd update -43.102:-54.389")
+        //     .EndSubCommand();
     }
 
     private void InitFirestore()
@@ -114,11 +114,11 @@ public class RedsMapCommandsModSystem : ModSystem
         {
             PlayerName = player.PlayerName,
             DateAdded = Timestamp.GetCurrentTimestamp(),
-            Title=title,
-            Coords=position
+            Title = title,
+            Coords = position
         };
         
-        WaypointStore.WriteToMap("markers",player.PlayerUID+parsedTitle(title),markerData);
+        WaypointStore.WriteToMap(player.PlayerName,"markers",player.PlayerUID+parsedTitle(title),markerData);
         
         return TextCommandResult.Success($"Marker added by  {player.PlayerName} at {position} on layer {layer}. ");
     }
@@ -137,22 +137,21 @@ public class RedsMapCommandsModSystem : ModSystem
         
         var position = GetWorldPosition(player);
         capi.ShowChatMessage($"Marker {title} at {position} on layer {layer} by player {player.PlayerName}.");
+        var markerData = new Waypoint(player.PlayerName,
+            title,$"{position.X}:{position.Z}",layer);
+        // var markerData = new
+        // {
+        //     PlayerName = player.PlayerName,
+        //     DateAdded = Timestamp.GetCurrentTimestamp(),
+        //     Title=title,
+        //     Coords=$"{position.X}:{position.Z}"
+        // };
         
-        var markerData = new
-        {
-            PlayerName = player.PlayerName,
-            DateAdded = Timestamp.GetCurrentTimestamp(),
-            Title=title,
-            Coords=$"{position.X}:{position.Z}"
-        };
-        
-        WaypointStore.WriteToMap("markers",player.PlayerUID+parsedTitle(title),markerData);
-        
+        WaypointStore.WriteWaypoint(Collections.MARKERS,layer,player.PlayerName,markerData);
         return TextCommandResult.Success($"Marker added by  {player.PlayerName} at {position} on layer {layer}. ");
     }
     private TextCommandResult OnMapAddRoute(TextCommandCallingArgs args)
     {
-        var _collectionName ="route";
         string[] coords = new string[1];
         IPlayer player = args.Caller.Player;
         if (player == null)
@@ -169,7 +168,7 @@ public class RedsMapCommandsModSystem : ModSystem
             DateAdded = Timestamp.GetCurrentTimestamp(),
             Title=title,
         };
-        WaypointStore.WriteToMap(_collectionName,$"{player.PlayerUID}+{title.ToUpper()}",markerData,coords);
+        WaypointStore.WriteToMap(player.PlayerName ,Collections.ROUTES,$"{player.PlayerUID}+{title.ToUpper()}",markerData,coords);
         return TextCommandResult.Success($"Route added by  {player.PlayerName}.");
     }
 
