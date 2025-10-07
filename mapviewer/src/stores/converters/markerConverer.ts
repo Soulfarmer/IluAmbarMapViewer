@@ -1,27 +1,30 @@
-import type { fMarker } from "@/models/dbModels";
-import type { IMarker, LocationBase } from "@/models/locationInfo";
+import type { fWaypoint } from "@/models/dbModels";
+import type { IWaypoint, LocationBase } from "@/models/locationInfo";
 import type { FirestoreDataConverter, QueryDocumentSnapshot, WithFieldValue } from "firebase/firestore";
 
-export class MarkerConverter implements FirestoreDataConverter<IMarker, fMarker>{
+export class MarkerConverter implements FirestoreDataConverter<IWaypoint, fWaypoint>{
 
-    toFirestore(modelObject: IMarker): WithFieldValue<fMarker> {
+    toFirestore(modelObject: IWaypoint): WithFieldValue<fWaypoint> {
         return {
-            Coords:modelObject.Coords.Latitude+":"+modelObject.Coords.Longitude,
-            DateAdded:modelObject.DateAdded,
-            PlayerName:modelObject.PlayerName,
-            Title:modelObject.Title,
-            Layer:modelObject.Layer
-        } as fMarker
+            waypoints: modelObject.waypoints.map(m=>({
+                Coords:m.Coords.Latitude+":"+m.Coords.Longitude,
+                DateAdded:m.DateAdded,
+                PlayerName:m.PlayerName,
+                Title:m.Title,
+                Layer:m.Layer
+            }))};
     }
-    fromFirestore(snapshot: QueryDocumentSnapshot<fMarker>) {
+    fromFirestore(snapshot: QueryDocumentSnapshot<fWaypoint>) {
         const data = snapshot.data()
         return {
-            Coords: this.toLocationBase(data.Coords),
-            Title: data.Title,
-            DateAdded: data.DateAdded,
-            Layer: data.Layer,
-            PlayerName: data.PlayerName,
-        }as IMarker
+            waypoints: data.waypoints.map(m=>({
+                Coords: this.toLocationBase(m.Coords[0]),
+                Title: m.Title,
+                DateAdded: m.DateAdded,
+                Layer: m.Layer,
+                PlayerName: m.PlayerName,
+            })),
+        } as IWaypoint
     }
     toLocationBase(coords :string):LocationBase{
         const l = coords.split(":")

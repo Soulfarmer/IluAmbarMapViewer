@@ -5,7 +5,9 @@ export class fRoute {
     PlayerName!: string;
     Title!: string;
 }
-
+export class fWaypoint{
+    waypoints!:fMarker[];
+}
 export class fMarker{
     Coords!:string;
     DateAdded!:string;

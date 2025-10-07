@@ -3,6 +3,10 @@ export class IMapConfig{
   spawnControl!:LocationBase
 }
 
+export interface IWaypoint{
+  waypoints: IMarker[];
+}
+
 export interface IMarker{
   Coords: LocationBase;
   Title: string;
@@ -10,7 +14,6 @@ export interface IMarker{
   Layer:string;
   PlayerName:string;
 }
-
 
 export interface LocationBase {
   Latitude: number;

@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
-import type { IMarker}  from './../models/locationInfo'
+import type { IMarker, IWaypoint}  from './../models/locationInfo'
 import { 
     getFirestore,
     collection, 
-    getDocs
+    getDocs,
 } from 'firebase/firestore'
 import { fireApp } from './firebaseConfigStore';
 import { MarkerConverter } from './converters/markerConverer';
@@ -13,7 +13,7 @@ const COLLECTION_NAME = "markers"
 
 export const useMarkerStore = defineStore('markerStore',{
     state:()=>({
-        Markers:[] as IMarker[],
+        Markers:{} as Record<string,IMarker[]>
         
     }),
     getters:{},
@@ -23,9 +23,12 @@ export const useMarkerStore = defineStore('markerStore',{
             await getDocs(collection(db,COLLECTION_NAME).withConverter(new MarkerConverter()))
             .then((snapshot)=>{
                   snapshot.docs.forEach(p=>{
-                    if(p.exists()){
-                        this.Markers.push(p.data() as IMarker)
-                    }
+                    if(p.exists())
+                        (p.data() as IWaypoint).waypoints.forEach(m=>{
+                            if(this.Markers[m.Layer]===undefined)
+                                this.Markers[m.Layer]=[]
+                            this.Markers[m.Layer].push(m)
+                        });
                   })
             })
         }

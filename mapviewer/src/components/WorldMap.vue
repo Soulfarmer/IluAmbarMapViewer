@@ -1,7 +1,7 @@
 <script lang="ts">
 // https://github.com/jhkluiver/Vue3Leaflet/blob/main/vue3-quasar-leaflet/src/components/VueLeafletMap.vue
 import "leaflet/dist/leaflet.css";
-import { LControlLayers, LMap, LTileLayer,LFeatureGroup, LMarker, LTooltip, LPolyline } from "@vue-leaflet/vue-leaflet";
+import { LControlLayers, LMap, LTileLayer,LFeatureGroup, LPolyline } from "@vue-leaflet/vue-leaflet";
 import { type PointTuple } from "leaflet";
 import { type IRoute, type LocationBase } from "@/models/locationInfo";
 import { ref } from 'vue'
@@ -9,6 +9,7 @@ import { storeToRefs } from "pinia";
 import {useMarkerStore} from "@/stores/markers"
 import {useRoutesStore} from "@/stores/routeStore"
 import {useMapConfigStore} from "@/stores/mapConfig"
+import FeatureGroup from "@/components/FeatureGroup.vue"
 
 export default{
   created() {
@@ -16,14 +17,17 @@ export default{
     useRoutesStore().fetch()
     useMarkerStore().fetch()
   },
+  mounted() {
+    this.mapRef = (this.$refs.mapRef as typeof LMap)?.leafletObject;
+    console.log(this.locations.Markers)
+  },
   components:{
     LMap,
     LTileLayer,
     LControlLayers,
     LFeatureGroup,
-    LMarker,
-    LTooltip,
-    LPolyline
+    LPolyline,
+    FeatureGroup
   },
   data(){
     return{
@@ -39,20 +43,30 @@ export default{
   },
   methods:{
     init(){
-      this.mapRef = (this.$refs.mapRef as typeof LMap)?.leafletObject;
       this.controlLayers = (this.$refs.controlLayers as typeof LControlLayers)?.leafletObject
-      this.controlLayers?.addOverlay((this.$refs.fgtp as typeof LFeatureGroup )?.leafletObject,"Translocators")
-      this.controlLayers?.addOverlay((this.$refs.fgpoi as typeof LFeatureGroup)?.leafletObject,"POIs")
+      // hack to fix map not loading properly
       setTimeout(() => {
-            this.mapRef?.invalidateSize();
-          }, 100);
-      },
-      getLatLon(item: LocationBase): PointTuple{
-        return [item.Latitude+ this.mapConfig.spawnControl.Latitude, item.Longitude+this.mapConfig.spawnControl.Longitude]
-      },
-      getRoute(route: IRoute):PointTuple[]{
-        return route.Coords.map(m=>[m.Latitude + this.mapConfig.spawnControl.Latitude, m.Longitude+this.mapConfig.spawnControl.Longitude ])
-      }
+        this.mapRef?.invalidateSize();
+      }, 100);
+      this.controlLayers?.addOverlay((this.$refs.fgtp as typeof LFeatureGroup )?.leafletObject,"Translocators")
+    },
+    initLayer(Layer:typeof LFeatureGroup , name:string){
+       // Object.keys(this.locations.Markers).forEach(k=>{
+      //   const fg = (this.$refs.fg as typeof LFeatureGroup)?.leafletObject
+      //   console.log(this.$refs)
+      //   if(fg){
+      //     this.controlLayers?.addOverlay(fg,k)
+      //   }
+      // })
+       this.controlLayers?.addOverlay(Layer.leafletObject,name)
+    },
+    getLatLon(item: LocationBase): PointTuple{
+      return [item.Latitude+ this.mapConfig.spawnControl.Latitude, item.Longitude+this.mapConfig.spawnControl.Longitude]
+    },
+    getRoute(route: IRoute):PointTuple[]{
+      return route.Coords.map(m=>[m.Latitude + this.mapConfig.spawnControl.Latitude, m.Longitude+this.mapConfig.spawnControl.Longitude ])
+    },
+    
   }
 }
 </script>
@@ -72,20 +86,18 @@ export default{
     @click="(e:any)=>console.log(e.latlng)"
     @ready="()=>init()"
     >
-       <l-control-layers ref="controlLayers" :options="{collapsed:false}"/>
-      <l-tile-layer
-        url="/maps/iluambar/{z}/{x}/{y}.png"
-        name="Overworld"
-        :no-wrap="true"
-      />
+    <l-tile-layer
+    url="/maps/iluambar/{z}/{x}/{y}.png"
+    name="Overworld"
+    :no-wrap="true"
+    />
+    <l-control-layers ref="controlLayers" :options="{collapsed:false}"/>
       <l-feature-group ref="fgtp" name="Translocators">
         <l-polyline v-for="(r) in routes.routes" :lat-lngs="getRoute(r)" color="blue"  dashArray="10, 10" dashOffset="30" :key="r.Name"/>
       </l-feature-group>
-      <l-feature-group ref="fgpoi" name="POIs">
-        <l-marker v-for="loc in  locations.Markers" :lat-lng="getLatLon(loc.Coords)" :key="loc.Title">
-          <l-tooltip>{{ loc.Title }}</l-tooltip>
-        </l-marker>
-      </l-feature-group>
+      <suspense>
+        <FeatureGroup v-for="(doc,k) in locations.Markers" :-control="mapConfig.spawnControl" :-name="k" :-markers="doc" :key="k" @init-layer="initLayer"/>
+      </suspense>
     </l-map>
   </div>
 </template>
