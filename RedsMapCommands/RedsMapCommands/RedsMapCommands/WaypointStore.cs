@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -11,15 +10,21 @@ using Google.Cloud.Firestore;
 public static class WaypointStore
 {
     private static FirestoreDb firestoreDb;
-    private static string configFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"VintagestoryData\ModConfig\RedsMapCommands\");
+
+    private static string configFolder =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            @"VintagestoryData\ModConfig\");
+
+   
     private static void InitFirestore()
     {
         try
         {
-            if (string.IsNullOrEmpty( Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS"))){
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")))
+            {
                 // Path to your credentials file. The server admin must place this file here.
                 // Using "ModConfig" is a good practice.
-                string credentialsPath = Path.Combine(configFolder, "myfirebasemod-credentials.json");
+                string credentialsPath = Path.Combine(configFolder, "RedsMapConfig.json");
 
                 if (!File.Exists(credentialsPath))
                 {
@@ -30,11 +35,13 @@ public static class WaypointStore
                 // Set the environment variable programmatically for the current process.
                 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath);
             }
-            
+
             // Initialize FirestoreDb. The project ID is read from the credentials file.
-            if (firestoreDb==null) 
-                firestoreDb = FirestoreDb.Create("ilu-ambar-ce3ed"); // Pass your Firebase Project ID here if needed, e.g., FirestoreDb.Create("my-project-id")
-            
+            if (firestoreDb == null)
+                firestoreDb =
+                    FirestoreDb.Create(
+                        "ilu-ambar-ce3ed"); // Pass your Firebase Project ID here if needed, e.g., FirestoreDb.Create("my-project-id")
+
             Console.WriteLine("[MyFirebaseMod] Successfully connected to Firestore.");
         }
         catch (Exception e)
@@ -42,8 +49,8 @@ public static class WaypointStore
             Console.WriteLine("[MyFirebaseMod] Failed to initialize Firestore: {0}", e.ToString());
         }
     }
-    
-    public static void WriteToMap(string PlayerName, 
+
+    public static void WriteToMap(string PlayerName,
         string collectionName,
         string layer,
         object markerData,
@@ -61,11 +68,10 @@ public static class WaypointStore
                 docRef = firestoreDb.Collection(collectionName).Document(layer);
                 // SetAsync will create the document if it doesn't exist or overwrite it if it does.
                 await docRef.SetAsync(markerData, SetOptions.MergeAll);
-                
-                if(coords!=null)
+
+                if (coords != null)
                     await docRef.UpdateAsync("Coords", FieldValue.ArrayUnion(coords));
                 Console.WriteLine("[MyFirebaseMod] Wrote player data to Firestore.");
-                
             }
             catch (Exception e)
             {
@@ -78,14 +84,16 @@ public static class WaypointStore
     {
         InitFirestore();
         DocumentReference docRef = null;
+        DocumentSnapshot snapshot = null;
         try
         {
+            docRef = firestoreDb.Collection(collectionName).Document(layer);
+            var task = Task.Run(async () => { snapshot = await docRef.GetSnapshotAsync(); });
+            Task.WaitAll(task);
             Task.Run(async () =>
             {
-                docRef = firestoreDb.Collection(collectionName).Document(layer);
-                var snapshot = await docRef.GetSnapshotAsync();
-                if(snapshot.Exists) 
-                    await docRef.UpdateAsync("waypoints",FieldValue.ArrayUnion(markerData));
+                if (snapshot.Exists)
+                    await docRef.UpdateAsync("waypoints", FieldValue.ArrayUnion(markerData));
                 else
                     await docRef.SetAsync(new LayerGroup(markerData));
             });
@@ -104,8 +112,8 @@ public static class WaypointStore
             var collection_name = "configuration";
             var data = new
             {
-                spawnControl=coords,
-                lastUpdateTime=DateTime.Now
+                spawnControl = coords,
+                lastUpdateTime = DateTime.Now
             };
             try
             {
@@ -122,5 +130,5 @@ public static class WaypointStore
         });
         return string.Empty;
     }
-    
+
 }

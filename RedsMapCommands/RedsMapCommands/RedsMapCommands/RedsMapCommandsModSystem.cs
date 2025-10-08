@@ -14,6 +14,7 @@ public class RedsMapCommandsModSystem : ModSystem
 {
     private ICoreClientAPI capi;
     private FirestoreDb firestoreDb;
+    private RedsMapConfig config;
 
     public override bool ShouldLoad(EnumAppSide side)
     {
@@ -24,8 +25,9 @@ public class RedsMapCommandsModSystem : ModSystem
     {
         base.StartClientSide(api);
         capi = api;
+        TryToLoadConfig(api);
         Mod.Logger.Notification("Hello from template mod client side: " + Lang.Get("redsmapcommands:hello"));
-            
+        
         var mapAddCmd = api.ChatCommands.GetOrCreate("mapadd")
             .WithDescription("Adds information to the interactable map.")
             .RequiresPrivilege(Privilege.chat);
@@ -63,38 +65,6 @@ public class RedsMapCommandsModSystem : ModSystem
         //     .EndSubCommand();
     }
 
-    private void InitFirestore()
-    {
-        var configFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"VintagestoryData\ModConfig\RedsMapCommands\");
-        try
-        {
-            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS"))) {
-                // Path to your credentials file. The server admin must place this file here.
-                // Using "ModConfig" is a good practice.
-                string credentialsPath = Path.Combine(configFolder, "myfirebasemod-credentials.json");
-
-                if (!File.Exists(credentialsPath))
-                {
-                    Console.WriteLine("[MyFirebaseMod] Firebase credentials file not found at: {0}", credentialsPath);
-                    return;
-                }
-
-                // Set the environment variable programmatically for the current process.
-                Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath);
-            }
-
-            // Initialize FirestoreDb. The project ID is read from the credentials file.
-            if (firestoreDb == null)
-                firestoreDb = FirestoreDb.Create("ilu-ambar-ce3ed"); // Pass your Firebase Project ID here if needed, e.g., FirestoreDb.Create("my-project-id")
-
-            Console.WriteLine("[MyFirebaseMod] Successfully connected to Firestore.");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("[MyFirebaseMod] Failed to initialize Firestore: {0}", e.ToString());
-        }
-    }
-    
     private TextCommandResult OnMapAddMarkerAt(TextCommandCallingArgs args)
     {
         // The player who ran the command is available in args.Caller.Player
@@ -124,6 +94,7 @@ public class RedsMapCommandsModSystem : ModSystem
     }
     private TextCommandResult OnMapAddMarker(TextCommandCallingArgs args)
     {
+        BlockPos position = null;
         // The player who ran the command is available in args.Caller.Player
         IPlayer player = args.Caller.Player;
         if (player == null)
@@ -134,20 +105,27 @@ public class RedsMapCommandsModSystem : ModSystem
         // Extract arguments from the parsed command
         string layer = (string)args[0];
         string title = (string)args[1];
-        
-        var position = GetWorldPosition(player);
-        capi.ShowChatMessage($"Marker {title} at {position} on layer {layer} by player {player.PlayerName}.");
-        var markerData = new Waypoint(player.PlayerName,
-            title,$"{position.X}:{position.Z}",layer);
-        // var markerData = new
-        // {
-        //     PlayerName = player.PlayerName,
-        //     DateAdded = Timestamp.GetCurrentTimestamp(),
-        //     Title=title,
-        //     Coords=$"{position.X}:{position.Z}"
-        // };
-        
-        WaypointStore.WriteWaypoint(Collections.MARKERS,layer,player.PlayerName,markerData);
+        try
+        {
+            position = GetWorldPosition(player);
+            capi.ShowChatMessage($"Marker {title} at {position} on layer {layer} by player {player.PlayerName}.");
+            var markerData = new Waypoint(player.PlayerName,
+                title, $"{position.X}:{position.Z}", layer);
+            // var markerData = new
+            // {
+            //     PlayerName = player.PlayerName,
+            //     DateAdded = Timestamp.GetCurrentTimestamp(),
+            //     Title=title,
+            //     Coords=$"{position.X}:{position.Z}"
+            // };
+
+            WaypointStore.WriteWaypoint(Collections.MARKERS, layer, player.PlayerName, markerData);
+        }
+        catch (Exception e)
+        {
+            Mod.Logger.Notification(e.Message);
+        }
+
         return TextCommandResult.Success($"Marker added by  {player.PlayerName} at {position} on layer {layer}. ");
     }
     private TextCommandResult OnMapAddRoute(TextCommandCallingArgs args)
@@ -223,4 +201,27 @@ public class RedsMapCommandsModSystem : ModSystem
     /// <param name="title">The waypoint's title.</param>
     /// <returns>A normalized string in all caps without spaces("-" instead).</returns>
     private string parsedTitle(string title) => title.ToUpper().Replace(" ", "-");
+    private void TryToLoadConfig(ICoreAPI api) 
+    {
+        
+        //It is important to surround the LoadModConfig function in a try-catch. 
+        //If loading the file goes wrong, then the 'catch' block is run.
+        try
+        {
+            config = api.LoadModConfig<RedsMapConfig>("RedsMapConfig.json");
+            if (config == null) //if the 'MyConfigData.json' file isn't found...
+            {
+                config = new RedsMapConfig();
+            }
+            //Save a copy of the mod config.
+            api.StoreModConfig<RedsMapConfig>(config, "RedsMapConfig.json");
+        }
+        catch (Exception e)
+        {
+            //Couldn't load the mod config... Create a new one with default settings, but don't save it.
+            Mod.Logger.Error("Could not load config! Loading default settings instead.");
+            Mod.Logger.Error(e);
+            config = new RedsMapConfig();
+        }
+    }
 }
