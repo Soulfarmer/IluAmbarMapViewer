@@ -28,6 +28,6 @@ export class MarkerConverter implements FirestoreDataConverter<IWaypoint, fWaypo
     }
     toLocationBase(coords :string):LocationBase{
         const l = coords.split(":")
-        return {Latitude:parseInt(l[0]), Longitude:parseInt(l[1])} as LocationBase
+        return {Latitude:parseFloat(l[0]), Longitude:parseFloat(l[1])} as LocationBase
     }
 }
