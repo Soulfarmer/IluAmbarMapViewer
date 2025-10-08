@@ -22,3 +22,4 @@ pnpm-debug.log*
 *.sw?
 *.ps1
 [Ll]ib/
+*/RedsMapConfig.cs
