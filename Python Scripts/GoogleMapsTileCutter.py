@@ -5,8 +5,9 @@ import math
 
 def ensure_square(im):
     max_side = max(im.size)
-    new_im = Image.new('RGB', (max_side, max_side), (255, 255, 255))
-    new_im.paste(im, ((max_side - im.width) // 2, (max_side - im.height) // 2))
+    new_im = Image.new('RGB', (max_side, max_side), (0, 0, 0))
+    #new_im.paste(im, ((max_side - im.width) // 2, (max_side - im.height) // 2))
+    new_im.paste(im)
     return new_im
 
 def save_tile(tile, z, x, y, output_dir, export_format, structure):
@@ -24,8 +25,9 @@ def generate_tiles(im, tile_size, output_dir, export_format, structure):
     for z in range(max_zoom + 1):
         scale = 2 ** (max_zoom - z)
         resized = im.resize((im.size[0] // scale, im.size[1] // scale), Image.LANCZOS)
-        tiles_x = resized.size[0] // tile_size
-        tiles_y = resized.size[1] // tile_size
+        tiles_x = int(math.ceil(resized.size[0] // tile_size))
+        tiles_y = int(math.ceil(resized.size[1] // tile_size))
+                
         for x in range(tiles_x):
             for y in range(tiles_y):
                 box = (x * tile_size, y * tile_size, (x + 1) * tile_size, (y + 1) * tile_size)
@@ -47,6 +49,7 @@ def main():
 
     im = Image.open(args.image)
     im = ensure_square(im)
+    
     generate_tiles(im, args.tile_size, args.output_dir, args.format, args.structure)
     print("Tile generation complete!")
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 // https://github.com/jhkluiver/Vue3Leaflet/blob/main/vue3-quasar-leaflet/src/components/VueLeafletMap.vue
 import "leaflet/dist/leaflet.css";
-import { LControlLayers, LMap, LTileLayer,LFeatureGroup, LPolyline } from "@vue-leaflet/vue-leaflet";
+import { LControlLayers, LMap, LTileLayer,LFeatureGroup } from "@vue-leaflet/vue-leaflet";
 import { type PointTuple } from "leaflet";
 import { type IRoute, type LocationBase } from "@/models/locationInfo";
 import { ref } from 'vue'
@@ -20,14 +20,12 @@ export default{
   },
   mounted() {
     this.mapRef = (this.$refs.mapRef as typeof LMap)?.leafletObject;
-    console.log(this.locations.Markers)
+    // console.log(this.locations.Markers)
   },
   components:{
     LMap,
     LTileLayer,
     LControlLayers,
-    LFeatureGroup,
-    LPolyline,
     FeatureGroup
   },
   data(){
@@ -96,9 +94,9 @@ export default{
     :no-wrap="true"
     />
     <l-control-layers ref="controlLayers" :options="{collapsed:false}"/>
-      <l-feature-group ref="fgtp" name="Translocators">
+      <!-- <l-feature-group ref="fgtp" name="Translocators">
         <l-polyline v-for="(r) in routes.routes" :lat-lngs="getRoute(r)" color="blue"  dashArray="10, 10" dashOffset="30" :key="r.Name"/>
-      </l-feature-group>
+      </l-feature-group> -->
       <suspense>
         <FeatureGroup v-for="(doc,k) in locations.Markers" :-control="mapConfig.spawnControl" :-name="k" :-markers="doc" :key="k" @init-layer="initLayer"/>
       </suspense>
