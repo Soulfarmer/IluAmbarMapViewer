@@ -10,6 +10,7 @@ import {useMarkerStore} from "@/stores/markers"
 import {useRoutesStore} from "@/stores/routeStore"
 import {useMapConfigStore} from "@/stores/mapConfig"
 import FeatureGroup from "@/components/FeatureGroup.vue"
+import { Utility } from "@/composables/Utility";
 
 export default{
   created() {
@@ -39,6 +40,8 @@ export default{
       mapConfig: storeToRefs(useMapConfigStore()),
       locations : storeToRefs(useMarkerStore()),
       routes: storeToRefs(useRoutesStore()),
+      mapSize:ref([4000,3000] as [number,number]),
+      bounds : ref()
     }
   },
   methods:{
@@ -49,15 +52,9 @@ export default{
         this.mapRef?.invalidateSize();
       }, 100);
       this.controlLayers?.addOverlay((this.$refs.fgtp as typeof LFeatureGroup )?.leafletObject,"Translocators")
+      this.bounds = [[0, 0], [this.mapSize[0], this.mapSize[1]]];
     },
     initLayer(Layer:typeof LFeatureGroup , name:string){
-       // Object.keys(this.locations.Markers).forEach(k=>{
-      //   const fg = (this.$refs.fg as typeof LFeatureGroup)?.leafletObject
-      //   console.log(this.$refs)
-      //   if(fg){
-      //     this.controlLayers?.addOverlay(fg,k)
-      //   }
-      // })
        this.controlLayers?.addOverlay(Layer.leafletObject,name)
     },
     getLatLon(item: LocationBase): PointTuple{
@@ -66,6 +63,12 @@ export default{
     getRoute(route: IRoute):PointTuple[]{
       return route.Coords.map(m=>[m.Latitude + this.mapConfig.spawnControl.Latitude, m.Longitude+this.mapConfig.spawnControl.Longitude ])
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    leafletToGame(e:any){
+      const util = new Utility(this.mapSize)
+      const g = util.leafletToGame(e.latlng)
+      console.log(g, e.latlng)
+    }
     
   }
 }
@@ -78,12 +81,13 @@ export default{
     :min-zoom="0" 
     :max-zoom="6" 
     :center="center"
+    :bounds="bounds"
     style="z-index: 0;"
     :use-global-leaflet="true"
     :cursor="true"
     crs="Base"
     @update:zoom="(e)=>{/*console.log(e)*/}"
-    @click="(e:any)=>console.log(e.latlng)"
+    @click="(e:any)=> leafletToGame(e)"
     @ready="()=>init()"
     >
     <l-tile-layer

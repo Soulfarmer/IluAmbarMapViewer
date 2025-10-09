@@ -1,1 +1,1 @@
-magick vs_worldmap02.png -resize 110% out.png
+magick vs_worldmap01.png -resize 110% out.png

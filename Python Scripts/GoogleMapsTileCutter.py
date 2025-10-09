@@ -54,4 +54,7 @@ if __name__ == '__main__':
     Image.MAX_IMAGE_PIXELS = 933120000
     main()
 
-#python GoogleMapsTileCutter.py "../Vintage Story/Iluambar/vs_worldmap01.png" --tile_size 256 --output_dir "../Vintage\ Story/Iluambar/New folder/" --format PNG --structure folder
+# FULL COMMAND:
+#python GoogleMapsTileCutter.py "./out.png" --tile_size 256 --output_dir "./map/" --format PNG --structure folder
+# WITH OMITED DEFAULTS
+#python GoogleMapsTileCutter.py "./out.png" --output_dir "./map/"
